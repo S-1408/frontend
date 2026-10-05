@@ -1,8 +1,8 @@
 import { apiClient } from "../../../lib/apiClient/apiClient";
-import type { Application } from "../types/types";
+import type { Application, CreateApplicationPayload } from "../types/types";
 
 export async function getApplications(){
-    const response = await apiClient.get<Application[]>("/applicationss");
+    const response = await apiClient.get<Application[]>("/applications");
     return response.data
 }
 
@@ -12,15 +12,11 @@ export async function fetchApplication(id:string){
 }
 
 export async function deleteApplication(id:string){
-    const response = await apiClient.delete(`/application/${id}`)
+    const response = await apiClient.delete(`/applications/${id}`)
     return response.data
 }
 
-export async function createAPplication(payload:{
-    company:string;
-    role:string;
-    status?:string
-}){
-    const response = await apiClient.post('/applications',payload )
+export async function createApplication(payload:CreateApplicationPayload){
+    const response = await apiClient.post<Application>('/applications',payload)
     return response.data
 }

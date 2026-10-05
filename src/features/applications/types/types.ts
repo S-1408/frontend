@@ -11,9 +11,5 @@ export type Application = {
   status: ApplicationStatus;
   appliedAt: string;
 };
-export type ApplicationResponse = {
-  data: Application[];
-};
-export type StatusBadgeProps = {
-  status: ApplicationStatus;
-};
+
+export type CreateApplicationPayload = Omit<Application, "id">;

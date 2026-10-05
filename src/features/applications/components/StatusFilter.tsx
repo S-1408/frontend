@@ -1,19 +1,19 @@
-import type { ApplicationStatus } from "../../dashboard/types/types"
+import { APPLICATION_STATUS_OPTIONS } from "../constants/status"
+import type { ApplicationStatus } from "../types/types"
 
 type StatusFilterProps ={
     selectedStatus:ApplicationStatus | "",
-    setSelectedStatus:(selectedValue:ApplicationStatus)=>void
+    setSelectedStatus:(selectedValue:ApplicationStatus | "")=>void
 }
 const StatusFilter = ({selectedStatus,setSelectedStatus}:StatusFilterProps) => {
   return (
-    <select value={selectedStatus} onChange={(e)=>setSelectedStatus(e.target.value)}
+    <select value={selectedStatus} onChange={(e)=>setSelectedStatus(e.target.value as ApplicationStatus | "")}
     className="rounded-lg bg-gray-200 px-3 py-2 "
     >
      <option value="">All status</option>
-      <option value="interviewing">Interviewing</option>
-      <option value="applied">Applied</option>
-      <option value="offer">Offer</option>
-      <option value="rejected">Rejected</option>
+      {APPLICATION_STATUS_OPTIONS.map(({value,label})=>(
+        <option key={value} value={value}>{label}</option>
+      ))}
     </select>
   )
 }

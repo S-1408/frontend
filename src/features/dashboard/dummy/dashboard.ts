@@ -1,4 +1,8 @@
-import type { Application, ApplicationStatusData } from "../types/types";
+import type {
+  Application,
+  ApplicationStatus,
+  ApplicationStatusData,
+} from "../../applications/types/types";
 
 export const applicationStatus:ApplicationStatusData[] = [
   {
@@ -42,12 +46,16 @@ export const recentApplication:Application[]=[
     }
 ]
 
-export const statusConfig ={
+// Record<ApplicationStatus, ...> makes a missing or misspelled status a compile error
+export const statusConfig: Record<
+  ApplicationStatus,
+  { label: string; className: string }
+> = {
   applied: {
     label: "Applied",
     className: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20",
   },
-  interviewing: {
+  interview: {
     label: "Interviewing",
     className: "bg-sky-50 text-sky-700 ring-1 ring-inset ring-sky-600/20 ",
   },

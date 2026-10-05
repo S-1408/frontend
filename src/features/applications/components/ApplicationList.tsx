@@ -15,7 +15,7 @@ if(isError){
       <h2>All Applications</h2>
       <section className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px]">
+          <table className="w-full min-w-175">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/70">
                 <th className="px-6 py-3.5 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
@@ -36,7 +36,7 @@ if(isError){
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {data?.data?.map((item) => {
+              {data?.map((item) => {
                 return (
                   <tr
                     key={item.id}
@@ -67,6 +67,7 @@ if(isError){
                         type="button"
                         className="text-gray-500 hover:text-gray-900"
                         aria-label={`Actions for ${item.company}`}
+                      
                       >
                         ⋮
                       </button>
@@ -79,6 +80,7 @@ if(isError){
         </div>
       </section>
     </div>
+
   );
 };
 
