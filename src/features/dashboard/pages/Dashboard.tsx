@@ -1,6 +1,7 @@
 import RecentApplication from "../components/RecentApplication";
 import StatusOverview from "../components/StatusOverview";
 import { applicationStatus,  } from "../dummy/dashboard";
+import SectionBoundary from "../../../shared/components/ErrorBoundary/SectionBoundary";
 
 const Dashboard = () => {
   return (
@@ -11,8 +12,13 @@ const Dashboard = () => {
           Track and manage your job applications.
         </p>
       </div>
-      <StatusOverview data={applicationStatus} />
-      <RecentApplication />
+      {/* Separate boundaries: one widget failing leaves the other visible */}
+      <SectionBoundary name="dashboard-status-overview" title="Couldn't display the status overview.">
+        <StatusOverview data={applicationStatus} />
+      </SectionBoundary>
+      <SectionBoundary name="dashboard-recent-applications" title="Couldn't display recent applications.">
+        <RecentApplication />
+      </SectionBoundary>
     </div>
   );
 };

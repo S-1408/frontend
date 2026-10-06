@@ -1,13 +1,33 @@
 import StatusBadge from "../../dashboard/components/StatusBadge";
 import { useApplication } from "../../dashboard/hooks/useApplication";
+import { getApiErrorMessage } from "../../../lib/apiClient/getApiErrorMessage";
 
 const ApplicationList = () => {
-  const {data,isLoading,isError} = useApplication();
+  const {data,isLoading,isError,error,refetch,isFetching} = useApplication();
   if(isLoading){
   return <p>Loading...</p>
 }
+// A failed load is an expected state (offline, server down), not a crash:
+// explain it inline and let the user retry, no error boundary needed
 if(isError){
-  return <p>Something went wrong</p>
+  return (
+    <div
+      role="alert"
+      className="m-6 flex flex-col items-start gap-2 rounded-2xl border border-red-100 bg-red-50 p-4"
+    >
+      <p className="text-sm font-medium text-red-700">
+        {getApiErrorMessage(error, "Couldn't load your applications.")}
+      </p>
+      <button
+        type="button"
+        className="rounded-lg bg-white px-3 py-1.5 text-sm text-gray-700 ring-1 ring-gray-200 transition hover:bg-gray-50 disabled:opacity-50"
+        onClick={() => refetch()}
+        disabled={isFetching}
+      >
+        {isFetching ? "Retrying..." : "Retry"}
+      </button>
+    </div>
+  )
 }
   
   return (

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import ApplicationSearch from "../components/ApplicationSearch";
 import StatusFilter from "../components/StatusFilter";
 import ApplicationList from "../components/ApplicationList";
@@ -9,6 +10,7 @@ import Modal from "../../../shared/components/Modal/Modal";
 import type { ApplicationStatus } from "../types/types";
 import { useCreateApplication } from "../hooks/useCreateApplication";
 import { getApiErrorMessage } from "../../../lib/apiClient/getApiErrorMessage";
+import SectionBoundary from "../../../shared/components/ErrorBoundary/SectionBoundary";
 
 const Application = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +35,13 @@ const Application = () => {
   const handleSubmit = (data: ApplicationFormValues) => {
     // Close only after the server confirms, so a failed request keeps the
     // user's input and shows them the error instead of silently losing it
-    createApplication(data,{onSuccess:()=>setIsOpen(false)})
+    createApplication(data, {
+      onSuccess: () => {
+        setIsOpen(false);
+        // The modal closing alone is easy to miss; confirm the save explicitly
+        toast.success("Application added");
+      },
+    });
   };
 
   return (
@@ -65,8 +73,10 @@ const Application = () => {
             setSelectedStatus={setSelectedStatus}
           />
         </div>
-
-        <ApplicationList />
+        <SectionBoundary name="application-list" title="Couldn't display your applications.">
+          <ApplicationList />
+        </SectionBoundary>
+       
       </div>
 
       <Modal
