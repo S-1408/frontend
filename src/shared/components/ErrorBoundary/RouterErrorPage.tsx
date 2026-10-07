@@ -1,6 +1,7 @@
 import { isRouteErrorResponse, Link, useRouteError } from "react-router-dom";
 import NotFoundPage from "./NotFoundPage";
 import { getErrorMessage } from "./getErrorMessage";
+import { isChunkLoadError } from "./isChunkLoadError";
 
 // Rendered by React Router's errorElement when a route crashes while rendering
 const RouterErrorPage = () => {
@@ -8,6 +9,25 @@ const RouterErrorPage = () => {
 
   if (isRouteErrorResponse(error) && error.status === 404) {
     return <NotFoundPage />;
+  }
+
+  // Expected after a deploy, not a bug: explain it instead of "Something went wrong"
+  if (isChunkLoadError(error)) {
+    return (
+      <div role="alert" className="flex flex-col items-center justify-center gap-3 p-12 text-center">
+        <h2 className="text-xl font-semibold text-gray-900">A new version is available</h2>
+        <p className="text-sm text-gray-600">
+          JobTrackr was updated while this tab was open. Reload to get the latest version.
+        </p>
+        <button
+          type="button"
+          className="rounded-xl bg-indigo-300 px-3 py-2 transition hover:bg-indigo-500"
+          onClick={() => window.location.reload()}
+        >
+          Reload
+        </button>
+      </div>
+    );
   }
 
   return (
