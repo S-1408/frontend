@@ -50,7 +50,7 @@ if(isError){
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {data?.data?.map((item) => {
+              {data?.map((item) => {
                 return (
                   <tr
                     key={item.id}
