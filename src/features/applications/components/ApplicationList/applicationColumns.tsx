@@ -4,9 +4,12 @@ import type { Application } from "../../types";
 import StatusBadge from "../StatusBadge/StatusBadge";
 
 
-type ColumnActions = { onDelete: (application: Application) => void };
+type ColumnActions = {
+  onEdit: (application: Application) => void;
+  onDelete: (application: Application) => void;
+};
 const columnHelper = createColumnHelper<Application>();
-export const getApplicationColumns=({onDelete}:ColumnActions) => [
+export const getApplicationColumns = ({ onEdit, onDelete }: ColumnActions) => [
   columnHelper.accessor("company", {
     header: "Company",
     cell: ({ row }) => {
@@ -40,12 +43,12 @@ export const getApplicationColumns=({onDelete}:ColumnActions) => [
     id: "actions",
     header: "Actions",
     cell: ({ row }) => (
-      <div className="flex justify-space-between gap-3">
+      <div className="flex gap-3">
         <button
           type="button"
           aria-label={`Edit ${row.original.company}`}
           className="text-gray-500 hover:text-gray-900"
-          onClick={() => console.log(row.original.id)}
+          onClick={() => onEdit(row.original)}
         >
           <Pencil size={16} className="text-blue-500" aria-hidden="true" />
         </button>

@@ -19,3 +19,5 @@ export type CreateApplicationPayload = Omit<Application, "id">;
 
 // What the form edits: everything except the server-owned id
 export type ApplicationFormValues = CreateApplicationPayload;
+
+export type ApplicationFilters = {search?:string;status?:ApplicationStatus}

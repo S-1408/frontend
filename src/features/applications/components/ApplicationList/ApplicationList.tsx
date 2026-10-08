@@ -1,43 +1,32 @@
+import { memo, useMemo, useState } from "react";
 import { useApplications } from "../../hooks/useApplications";
 import { getApiErrorMessage } from "../../../../lib/apiClient/getApiErrorMessage";
 import DataTable from "../../../../shared/components/DataTable/DataTable";
 import type { Application } from "../../types";
-import { memo, useMemo, useRef, useState } from "react";
-import { useDeleteApplication } from "../../hooks/useDeleteApplication";
-import Modal from "../../../../shared/components/Modal/Modal";
-import { toast } from "sonner";
 import { getApplicationColumns } from "./applicationColumns";
+import EditApplicationModal from "./EditApplicationModal";
+import DeleteApplicationDialog from "./DeleteApplicationDialog";
+import { useApplicationFilters } from "../../hooks/useApplicationFilters";
 
 // Module level: the same empty array every render, so the table doesn't rebuild
-const No_APPLICATION: Application[] = [];
+const NO_APPLICATIONS: Application[] = [];
 
 const ApplicationList = () => {
+  // Which row the user picked. The dialogs own their mutations, so saving or
+  // deleting re-renders only the dialog, not this list and its table.
+  const [toEdit, setToEdit] = useState<Application | null>(null);
   const [toDelete, setToDelete] = useState<Application | null>(null);
-  // setState is stable, so the columns are built once
-
-  const { data, isLoading, isError, error, refetch, isFetching } =
-    useApplications();
-  const { mutate: deleteApp, isPending } = useDeleteApplication();
-  // Cancel gets focus when the confirm opens: the safe default for a destructive action
-  const cancelRef = useRef<HTMLButtonElement>(null);
-
+  const filters = useApplicationFilters();
+  // const { data, isLoading, isError, error, refetch, isFetching } = useApplications();
+  const { data, isLoading, isError, error, refetch, isFetching } = useApplications(filters);
+  
+  const hasFilters = Boolean(filters.search || filters.status);
+  // setState functions are stable, so the columns are built once
   const columns = useMemo(
-    () => getApplicationColumns({ onDelete: setToDelete }),
+    () => getApplicationColumns({ onEdit: setToEdit, onDelete: setToDelete }),
     [],
   );
-  const handleClose = () => {
-  if (isPending) return;
-  setToDelete(null);
-};
-  const handleConfirmDelete = () => {
-     if (!toDelete) return;
-     deleteApp(toDelete.id,{
-      onSuccess:()=>{
-        setToDelete(null);
-        toast.success("Application deleted")
-      }
-     })
-  };
+
   if (isLoading) {
     return <p>Loading...</p>;
   }
@@ -72,50 +61,17 @@ const ApplicationList = () => {
           <div className="overflow-x-auto">
             <DataTable
               columns={columns}
-              data={data ?? No_APPLICATION}
-              emptyMessage="No application yet."
+              data={data ?? NO_APPLICATIONS}
+              emptyMessage={hasFilters ? "No applications match your search." : "No application yet."}
             />
           </div>
         </section>
       </div>
-      <Modal
-        isOpen={toDelete !== null}
-        onClose={handleClose}
-        title="Delete Application"
-        initialFocusRef={cancelRef}
-        footer={
-          <>
-            <button
-              ref={cancelRef}
-              type="button"
-              onClick={handleClose}
-              disabled={isPending}
-              className="cursor-pointer"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmDelete}
-              disabled={isPending}
-              aria-busy={isPending}
-              className="border px-3 py-1 bg-red-500 rounded-lg border-red-200 cursor-pointer hover:bg-red-700 text-md font-bold text-white "
-            >
-              {isPending ? "Deleting..." : "Delete"}
-            </button>
-          </>
-        }
-      >
-        Delete{" "}
-        <strong>
-          {toDelete?.company}-{toDelete?.role}
-        </strong>
-        , Are you sure, you want to continue?
-      </Modal>
+
+      <EditApplicationModal application={toEdit} onClose={() => setToEdit(null)} />
+      <DeleteApplicationDialog application={toDelete} onClose={() => setToDelete(null)} />
     </>
   );
 };
 
 export default memo(ApplicationList);
-
-

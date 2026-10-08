@@ -15,6 +15,7 @@ type User = ReturnType<typeof userEvent.setup>;
 let applications: ApplicationItem[];
 let postedBodies: unknown[];
 let deletedIds:string[];
+let patchedBodies: unknown[];
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-10-05T12:00:00"));
@@ -24,6 +25,7 @@ beforeEach(() => {
   ];
   postedBodies = [];
   deletedIds=[];
+  patchedBodies = [];
   // A tiny in-memory backend so GET reflects what POST created
   server.use(
     http.get("*/applications", () => HttpResponse.json(applications)),
@@ -38,7 +40,13 @@ beforeEach(() => {
      deletedIds.push(params.id as string);
      applications = applications.filter((a)=>a.id !== params.id);
      return new HttpResponse(null,{status:204})
-    })
+    }),
+    http.patch("*/applications/:id", async ({ params, request }) => {
+      const changes = (await request.json()) as Partial<ApplicationItem>;
+      patchedBodies.push(changes);
+      applications = applications.map((a) => (a.id === params.id ? { ...a, ...changes } : a));
+      return HttpResponse.json(applications.find((a) => a.id === params.id));
+    }),
   );
 });
 afterEach(() => vi.useRealTimers());
@@ -65,7 +73,7 @@ describe("Create application flow", () => {
   // Why: the full happy path end to end. The final assertion only passes if
   // invalidateQueries refetched the list, so removing it fails this test.
   it("posts the form, closes the modal and shows the new row in the list", async () => {
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     expect(await screen.findByText("Amazon")).toBeInTheDocument();
 
     await fillAndSubmit(user, await openModal(user));
@@ -88,7 +96,7 @@ describe("Create application flow", () => {
         HttpResponse.json({ message: "Application already exists" }, { status: 409 }),
       ),
     );
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openModal(user);
 
     await fillAndSubmit(user, dialog);
@@ -101,7 +109,7 @@ describe("Create application flow", () => {
   // Why: invalid input must never reach the server, and the modal must stay open
   // so the user can fix it.
   it("does not call the API when validation fails", async () => {
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openModal(user);
 
     await user.click(within(dialog).getByRole("button", { name: "Add" }));
@@ -119,7 +127,7 @@ describe("Create application flow", () => {
         HttpResponse.json({ message: "Application already exists" }, { status: 409 }),
       ),
     );
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openModal(user);
 
     await fillAndSubmit(user, dialog);
@@ -135,7 +143,7 @@ describe("Create application flow", () => {
   // still see a readable message, never a blank or "undefined".
   it("shows a fallback message when the server sends no message", async () => {
     server.use(http.post("*/applications", () => new HttpResponse(null, { status: 500 })));
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openModal(user);
 
     await fillAndSubmit(user, dialog);
@@ -149,7 +157,7 @@ describe("Create application flow", () => {
   // to check their connection is more useful than a generic error.
   it("shows a connectivity message on network failure", async () => {
     server.use(http.post("*/applications", () => HttpResponse.error()));
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openModal(user);
 
     await fillAndSubmit(user, dialog);
@@ -172,7 +180,7 @@ describe("Create application flow", () => {
         return HttpResponse.json({ id: "9" }, { status: 201 });
       }),
     );
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openModal(user);
     const d = within(dialog);
 
@@ -202,7 +210,7 @@ describe("Create application flow", () => {
         HttpResponse.json({ message: "Server exploded" }, { status: 500 }),
       ),
     );
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     let dialog = await openModal(user);
     await fillAndSubmit(user, dialog);
     expect(await within(dialog).findByRole("alert")).toBeInTheDocument();
@@ -219,7 +227,7 @@ describe("Create application flow", () => {
 describe("Delete application", () => {
   // Why: the happy path. The row only disappears if the list was invalidated and refetched.
   it("deletes after confirming and removes the row", async () => {
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openDeleteConfirm(user);
 
     await user.click(within(dialog).getByRole("button", { name: "Delete" }));
@@ -232,7 +240,7 @@ describe("Delete application", () => {
 
   // Why: cancelling must never send a request.
   it("cancel closes the dialog without deleting", async () => {
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openDeleteConfirm(user);
 
     await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
@@ -244,7 +252,7 @@ describe("Delete application", () => {
 
   // Why: focus starts on the safe choice, and returns to where the user was.
   it("focuses Cancel on open and returns focus to the row button on close", async () => {
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openDeleteConfirm(user);
 
     expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveFocus();
@@ -255,7 +263,7 @@ describe("Delete application", () => {
   // Why: a failed delete must not remove the row or close the dialog.
   it("shows an error and keeps the row when the delete fails", async () => {
     server.use(http.delete("*/applications/:id", () => new HttpResponse(null, { status: 500 })));
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
     const dialog = await openDeleteConfirm(user);
 
     await user.click(within(dialog).getByRole("button", { name: "Delete" }));
@@ -271,7 +279,7 @@ describe("Application list load", () => {
   // offer a way out inline instead of a dead-end "Something went wrong".
   it("explains a failed load and recovers on Retry", async () => {
     server.use(http.get("*/applications", () => HttpResponse.error()));
-    const { user } = renderWithProviders(<Application />);
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to reach the server");
 
@@ -280,5 +288,71 @@ describe("Application list load", () => {
 
     expect(await screen.findByText("Amazon")).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+});
+
+// helper for edit
+async function openEditModal(user: User, company = "Amazon") {
+  await user.click(await screen.findByRole("button", { name: `Edit ${company}` }));
+  return screen.getByRole("dialog");
+}
+
+describe("Edit application", () => {
+  // Why: editing starts from the row's real values; an empty form would
+  // overwrite real data on save.
+  it("opens the form pre-filled with the row's values", async () => {
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
+    const d = within(await openEditModal(user));
+
+    expect(d.getByLabelText(/company/i)).toHaveValue("Amazon");
+    expect(d.getByLabelText(/role/i)).toHaveValue("SDE II");
+    expect(d.getByLabelText(/status/i)).toHaveValue("applied");
+    expect(d.getByLabelText(/applied date/i)).toHaveValue("2026-09-20");
+  });
+
+  // Why: the happy path. The new role only shows if the list was invalidated.
+  it("saves changes, closes the modal and updates the row", async () => {
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
+    const d = within(await openEditModal(user));
+
+    await user.clear(d.getByLabelText(/role/i));
+    await user.type(d.getByLabelText(/role/i), "Senior SDE");
+    await user.click(d.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(patchedBodies).toEqual([expect.objectContaining({ role: "Senior SDE" })]);
+    expect(await screen.findByText("Senior SDE")).toBeInTheDocument();
+    expect(await screen.findByText("Application updated")).toBeInTheDocument();
+  });
+
+  // Why: a failed save must keep the user's edits and explain what went wrong.
+  it("shows a server error inline and keeps the edits", async () => {
+    server.use(http.patch("*/applications/:id", () => new HttpResponse(null, { status: 500 })));
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
+    const dialog = await openEditModal(user);
+    const d = within(dialog);
+
+    await user.clear(d.getByLabelText(/role/i));
+    await user.type(d.getByLabelText(/role/i), "Senior SDE");
+    await user.click(d.getByRole("button", { name: "Save" }));
+
+    expect(await d.findByRole("alert")).toHaveTextContent("Couldn't save changes.");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(d.getByLabelText(/role/i)).toHaveValue("Senior SDE");
+  });
+
+  // Why: cancelling must discard edits; reopening shows the saved values, no old error.
+  it("cancel discards edits and reopening shows the original values", async () => {
+    const { user } = renderWithProviders(<Application />, { route: "/applications" });
+    let d = within(await openEditModal(user));
+    await user.clear(d.getByLabelText(/role/i));
+    await user.type(d.getByLabelText(/role/i), "Changed");
+    await user.click(d.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(patchedBodies).toHaveLength(0);
+
+    d = within(await openEditModal(user));
+    expect(d.getByLabelText(/role/i)).toHaveValue("SDE II");
   });
 });
