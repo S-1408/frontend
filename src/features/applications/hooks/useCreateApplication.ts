@@ -4,7 +4,8 @@ import { applicationKeys } from "../api/queryKeys";
 
 export const useCreateApplication = () => {
   const queryClient = useQueryClient();
-  //useQueryClient() returns the QueryClient you created in main.tsx and passed to <QueryClientProvider>It's the object that holds the cache.
+  //useQueryClient() returns the QueryClient you created in main.tsx and passed to <QueryClientProvider>
+  // It's the object that holds the cache.
 
   return useMutation({
     mutationFn: createApplication,

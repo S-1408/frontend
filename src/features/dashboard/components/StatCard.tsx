@@ -1,4 +1,7 @@
-import type { StatCardProps } from "../types/types"
+type StatCardProps = {
+  title: string;
+  value: number;
+};
 
 const StatCard = ({title,value}:StatCardProps) => {
   return (

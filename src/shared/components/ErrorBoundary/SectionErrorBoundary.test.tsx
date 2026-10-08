@@ -7,7 +7,7 @@ import { server } from "../../../test/server";
 import { renderWithProviders } from "../../../test/utils";
 import { apiClient } from "../../../lib/apiClient/apiClient";
 import { reportError } from "../../../lib/monitoring/reportError";
-import SectionBoundary from "./SectionBoundary";
+import SectionErrorBoundary from "./SectionErrorBoundary";
 
 vi.mock("@sentry/react", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@sentry/react")>()),
@@ -23,15 +23,15 @@ const Bomb = () => {
   throw new Error("Boom");
 };
 
-describe("SectionBoundary reporting", () => {
+describe("SectionErrorBoundary reporting", () => {
   // Why: the section name tells you WHICH widget breaks in production. Also
   // guards against double reporting: the root onCaughtError is the only
   // reporter, the boundary just tags. Uses the same root option as main.tsx.
   it("reports a caught error to Sentry once, tagged with the section name", () => {
     render(
-      <SectionBoundary name="revenue-chart">
+      <SectionErrorBoundary name="revenue-chart">
         <Bomb />
-      </SectionBoundary>,
+      </SectionErrorBoundary>,
       { onCaughtError: reportError },
     );
 
@@ -44,7 +44,7 @@ describe("SectionBoundary reporting", () => {
   });
 });
 
-describe("SectionBoundary with Suspense", () => {
+describe("SectionErrorBoundary with Suspense", () => {
   const Stats = () => {
     const { data } = useSuspenseQuery({
       queryKey: ["stats"],
@@ -58,9 +58,9 @@ describe("SectionBoundary with Suspense", () => {
   it("shows the skeleton, then the fallback, and Try again refetches", async () => {
     server.use(http.get("*/stats", () => new HttpResponse(null, { status: 500 })));
     const { user } = renderWithProviders(
-      <SectionBoundary name="stats" loadingFallback={<p>Loading stats…</p>}>
+      <SectionErrorBoundary name="stats" loadingFallback={<p>Loading stats…</p>}>
         <Stats />
-      </SectionBoundary>,
+      </SectionErrorBoundary>,
     );
 
     expect(screen.getByText("Loading stats…")).toBeInTheDocument();

@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import StatusBadge from "./StatusBadge";
-import { useApplication } from "../hooks/useApplication";
+import StatusBadge from "../../applications/components/StatusBadge/StatusBadge";
+import { useApplications } from "../../applications/hooks/useApplications";
 
 
 const RecentApplication = () => {
 
-const {data,isLoading,isError} = useApplication()
+const {data,isLoading,isError} = useApplications()
 if(isLoading){
   return <p>Loading...</p>
 }

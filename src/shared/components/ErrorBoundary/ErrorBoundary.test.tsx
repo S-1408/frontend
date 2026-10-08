@@ -7,7 +7,7 @@ import { routes } from "../../../app/router";
 import AppLayout from "../../../app/AppLayout";
 import AppCrashFallback from "./AppCrashFallback";
 import RouterErrorPage from "./RouterErrorPage";
-import SectionBoundary from "./SectionBoundary";
+import SectionErrorBoundary from "./SectionErrorBoundary";
 
 // A component that throws while rendering, like a real bug would
 // (e.g. calling .charAt on a null company name)
@@ -27,16 +27,16 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("SectionBoundary", () => {
+describe("SectionErrorBoundary", () => {
   // Why: the whole point of widget-level boundaries. One broken section must
   // not blank out the rest of the page.
   it("shows the fallback and keeps sibling content working", () => {
     render(
       <>
         <h1>Page heading</h1>
-        <SectionBoundary name="test-section" title="Couldn't display your applications.">
+        <SectionErrorBoundary name="test-section" title="Couldn't display your applications.">
           <Bomb />
-        </SectionBoundary>
+        </SectionErrorBoundary>
       </>,
     );
 
@@ -51,9 +51,9 @@ describe("SectionBoundary", () => {
   it("recovers when the user clicks Try again", async () => {
     const user = userEvent.setup();
     render(
-      <SectionBoundary name="test-section">
+      <SectionErrorBoundary name="test-section">
         <Bomb />
-      </SectionBoundary>,
+      </SectionErrorBoundary>,
     );
 
     shouldThrow = false;
@@ -68,9 +68,9 @@ describe("SectionBoundary", () => {
   it("shows the error message only in development", () => {
     vi.stubEnv("DEV", false);
     render(
-      <SectionBoundary name="test-section">
+      <SectionErrorBoundary name="test-section">
         <Bomb />
-      </SectionBoundary>,
+      </SectionErrorBoundary>,
     );
     expect(screen.queryByText(/Boom/)).not.toBeInTheDocument();
   });

@@ -4,7 +4,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import SectionErrorFallback from "./SectionErrorFallback";
 import { tagErrorSection } from "../../../lib/monitoring/errorSection";
 
-interface SectionBoundaryProps {
+interface SectionErrorBoundaryProps {
   children: ReactNode;
   // Stable id tagged on the Sentry event ("section: application-list"), so you
   // can see which part of the app fails most. Not shown to users.
@@ -20,7 +20,7 @@ interface SectionBoundaryProps {
 // Wrap independent widgets with this. QueryErrorResetBoundary makes
 // "Try again" also reset failed React Query queries so they refetch instead
 // of re-throwing the cached error.
-const SectionBoundary = ({ children, name, title, loadingFallback }: SectionBoundaryProps) => {
+const SectionErrorBoundary = ({ children, name, title, loadingFallback }: SectionErrorBoundaryProps) => {
   return (
     <QueryErrorResetBoundary>
       {({ reset }) => (
@@ -44,4 +44,4 @@ const SectionBoundary = ({ children, name, title, loadingFallback }: SectionBoun
   );
 };
 
-export default SectionBoundary;
+export default SectionErrorBoundary;

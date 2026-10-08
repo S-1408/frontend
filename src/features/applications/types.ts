@@ -1,3 +1,6 @@
+// Domain types for the applications feature: entities, payloads, unions.
+// Component props live next to their components, not here.
+
 export type ApplicationStatus = "applied" | "interview" | "offer" | "rejected";
 export type ApplicationStatusData = {
   status: ApplicationStatus;
@@ -13,3 +16,6 @@ export type Application = {
 };
 
 export type CreateApplicationPayload = Omit<Application, "id">;
+
+// What the form edits: everything except the server-owned id
+export type ApplicationFormValues = CreateApplicationPayload;
