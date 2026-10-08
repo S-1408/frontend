@@ -1,4 +1,4 @@
-// Remembers which SectionBoundary caught an error, so reportError can tag it
+// Remembers which SectionErrorBoundary caught an error, so reportError can tag it
 // in Sentry ("section: application-list") without the boundary reporting
 // the error a second time.
 //

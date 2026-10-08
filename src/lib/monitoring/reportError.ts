@@ -13,7 +13,7 @@ interface ReportErrorInfo extends Partial<Pick<ErrorInfo, "componentStack">> {
 // boundaries and API layers call this instead of Sentry directly, so the
 // monitoring vendor can be swapped without touching them.
 export const reportError = (error: unknown, info?: ReportErrorInfo) => {
-  // Set when a named SectionBoundary caught this error
+  // Set when a named SectionErrorBoundary caught this error
   const section = getErrorSection(error);
 
   if (import.meta.env.DEV) {

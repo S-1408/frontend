@@ -1,5 +1,9 @@
-import type { StatusOverviewProps } from "../types/types";
+import type { ApplicationStatusData } from "../../applications/types";
 import StatCard from "./StatCard";
+
+type StatusOverviewProps = {
+  data: ApplicationStatusData[];
+};
 
 const StatusOverview = ({ data }: StatusOverviewProps) => {
   return (

@@ -1,5 +1,5 @@
 import { apiClient } from "../../../lib/apiClient/apiClient";
-import type { Application, CreateApplicationPayload } from "../types/types";
+import type { Application, CreateApplicationPayload } from "../types";
 
 export async function getApplications(){
     const response = await apiClient.get<Application[]>("/applications");
@@ -12,7 +12,7 @@ export async function fetchApplication(id:string){
 }
 
 export async function deleteApplication(id:string){
-    const response = await apiClient.delete(`/applications/${id}`)
+    const response = await apiClient.delete<Application>(`/applications/${id}`)
     return response.data
 }
 

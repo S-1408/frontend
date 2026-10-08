@@ -4,8 +4,8 @@ import type userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { server } from "../../../test/server";
 import { renderWithProviders } from "../../../test/utils";
-import type { Application as ApplicationItem } from "../types/types";
-import Application from "./Application";
+import type { Application as ApplicationItem } from "../types";
+import Application from "./ApplicationPage";
 
 // Integration tests: real page + modal + form + React Query + axios, with
 // only the network mocked. These catch wiring bugs unit tests can't.
@@ -14,7 +14,7 @@ type User = ReturnType<typeof userEvent.setup>;
 
 let applications: ApplicationItem[];
 let postedBodies: unknown[];
-
+let deletedIds:string[];
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-10-05T12:00:00"));
@@ -23,7 +23,7 @@ beforeEach(() => {
     { id: "1", company: "Amazon", role: "SDE II", status: "applied", appliedAt: "2026-09-20" },
   ];
   postedBodies = [];
-
+  deletedIds=[];
   // A tiny in-memory backend so GET reflects what POST created
   server.use(
     http.get("*/applications", () => HttpResponse.json(applications)),
@@ -34,10 +34,15 @@ beforeEach(() => {
       applications = [...applications, created];
       return HttpResponse.json(created, { status: 201 });
     }),
+    http.delete("*/applications/:id",({params})=>{
+     deletedIds.push(params.id as string);
+     applications = applications.filter((a)=>a.id !== params.id);
+     return new HttpResponse(null,{status:204})
+    })
   );
 });
 afterEach(() => vi.useRealTimers());
-
+//openModal,fillAndSubmit-they're shared steps for Less duplication.One place to change.Tests read like a story.They don't hide what's being tested. 
 async function openModal(user: User) {
   await user.click(screen.getByRole("button", { name: "Add Application" }));
   return screen.getByRole("dialog");
@@ -51,6 +56,11 @@ async function fillAndSubmit(user: User, dialog: HTMLElement) {
   await user.click(d.getByRole("button", { name: "Add" }));
 }
 
+// helper function for delete
+async function openDeleteConfirm(user:User,company="Amazon"){
+await user.click(await screen.findByRole("button",{name:`Delete ${company}`}))
+return screen.getByRole("dialog")
+}
 describe("Create application flow", () => {
   // Why: the full happy path end to end. The final assertion only passes if
   // invalidateQueries refetched the list, so removing it fails this test.
@@ -203,6 +213,56 @@ describe("Create application flow", () => {
     dialog = await openModal(user);
     expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
     expect(within(dialog).getByLabelText(/company/i)).toHaveValue("");
+  });
+});
+
+describe("Delete application", () => {
+  // Why: the happy path. The row only disappears if the list was invalidated and refetched.
+  it("deletes after confirming and removes the row", async () => {
+    const { user } = renderWithProviders(<Application />);
+    const dialog = await openDeleteConfirm(user);
+
+    await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(deletedIds).toEqual(["1"]);
+    await waitFor(() => expect(screen.queryByText("Amazon")).not.toBeInTheDocument());
+    expect(await screen.findByText("Application deleted")).toBeInTheDocument();
+  });
+
+  // Why: cancelling must never send a request.
+  it("cancel closes the dialog without deleting", async () => {
+    const { user } = renderWithProviders(<Application />);
+    const dialog = await openDeleteConfirm(user);
+
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(deletedIds).toHaveLength(0);
+    expect(screen.getByText("Amazon")).toBeInTheDocument();
+  });
+
+  // Why: focus starts on the safe choice, and returns to where the user was.
+  it("focuses Cancel on open and returns focus to the row button on close", async () => {
+    const { user } = renderWithProviders(<Application />);
+    const dialog = await openDeleteConfirm(user);
+
+    expect(within(dialog).getByRole("button", { name: "Cancel" })).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("button", { name: "Delete Amazon" })).toHaveFocus();
+  });
+
+  // Why: a failed delete must not remove the row or close the dialog.
+  it("shows an error and keeps the row when the delete fails", async () => {
+    server.use(http.delete("*/applications/:id", () => new HttpResponse(null, { status: 500 })));
+    const { user } = renderWithProviders(<Application />);
+    const dialog = await openDeleteConfirm(user);
+
+    await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+
+    expect(await screen.findByText("Couldn't delete application.")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Amazon")).toBeInTheDocument();
   });
 });
 

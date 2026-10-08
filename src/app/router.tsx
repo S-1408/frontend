@@ -40,7 +40,7 @@ export const routes: RouteObject[] = [
               {
                 path:'applications',
                 lazy:async()=>({
-                  Component:(await import("../features/applications/pages/Application")).default
+                  Component:(await import("../features/applications/pages/ApplicationPage")).default
                 })
               },
               {

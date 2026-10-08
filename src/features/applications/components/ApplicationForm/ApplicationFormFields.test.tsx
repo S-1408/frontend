@@ -1,18 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import AddApplication, { type ApplicationFormValues } from "./AddApplication";
+import ApplicationFormFields from "./ApplicationFormFields";
+import type { ApplicationFormValues } from "../../types";
 
 const FORM_ID = "test-form";
 const TODAY = "2026-10-05";
 
 // In the app the submit button lives in the modal footer and points at the
 // form via the `form` attribute, so the test mirrors that wiring
-function setup(props: Partial<React.ComponentProps<typeof AddApplication>> = {}) {
+function setup(props: Partial<React.ComponentProps<typeof ApplicationFormFields>> = {}) {
   const onSubmit = vi.fn<(data: ApplicationFormValues) => void>();
   render(
     <>
-      <AddApplication formId={FORM_ID} onSubmit={onSubmit} {...props} />
+      <ApplicationFormFields formId={FORM_ID} onSubmit={onSubmit} isPending={false} {...props} />
       <button type="submit" form={FORM_ID}>
         Add
       </button>
@@ -39,7 +40,7 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
 const submit = (user: ReturnType<typeof userEvent.setup>) =>
   user.click(screen.getByRole("button", { name: "Add" }));
 
-describe("AddApplication", () => {
+describe("ApplicationFormFields", () => {
   // Freeze only Date (not timers) so "today" is deterministic and
   // user-event's internal timers still run normally
   beforeEach(() => {
@@ -77,7 +78,7 @@ describe("AddApplication", () => {
       expect(fields().appliedAt).toHaveAttribute("max", TODAY);
     });
 
-    // Why: an edit form will reuse this component; if defaultValues are ignored,
+    // Why: the edit modal reuses this component; if defaultValues are ignored,
     // editing would show an empty form and overwrite real data.
     it("prefills fields from defaultValues", () => {
       setup({
@@ -87,6 +88,13 @@ describe("AddApplication", () => {
       expect(f.company).toHaveValue("Meta");
       expect(f.role).toHaveValue("SDE");
       expect(f.status).toHaveValue("offer");
+    });
+
+    // Why: the API returns full ISO timestamps, but <input type="date"> only
+    // accepts YYYY-MM-DD. Without the conversion, editing shows an empty date.
+    it("converts an ISO appliedAt from the API into the date input format", () => {
+      setup({ defaultValues: { appliedAt: "2026-09-20T00:00:00.000Z" } });
+      expect(fields().appliedAt).toHaveValue("2026-09-20");
     });
   });
 
@@ -212,7 +220,7 @@ describe("AddApplication", () => {
     // sent. Locking the fields keeps what they see equal to what was saved.
     it("locks every field so input can't change mid-request", async () => {
       const { user } = setup({
-        disabled: true,
+        isPending: true,
         defaultValues: { company: "Google" },
       });
 

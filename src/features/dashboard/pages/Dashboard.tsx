@@ -1,7 +1,7 @@
 import RecentApplication from "../components/RecentApplication";
 import StatusOverview from "../components/StatusOverview";
 import { applicationStatus,  } from "../dummy/dashboard";
-import SectionBoundary from "../../../shared/components/ErrorBoundary/SectionBoundary";
+import SectionErrorBoundary from "../../../shared/components/ErrorBoundary/SectionErrorBoundary";
 
 const Dashboard = () => {
   return (
@@ -13,12 +13,12 @@ const Dashboard = () => {
         </p>
       </div>
       {/* Separate boundaries: one widget failing leaves the other visible */}
-      <SectionBoundary name="dashboard-status-overview" title="Couldn't display the status overview.">
+      <SectionErrorBoundary name="dashboard-status-overview" title="Couldn't display the status overview.">
         <StatusOverview data={applicationStatus} />
-      </SectionBoundary>
-      <SectionBoundary name="dashboard-recent-applications" title="Couldn't display recent applications.">
+      </SectionErrorBoundary>
+      <SectionErrorBoundary name="dashboard-recent-applications" title="Couldn't display recent applications.">
         <RecentApplication />
-      </SectionBoundary>
+      </SectionErrorBoundary>
     </div>
   );
 };
