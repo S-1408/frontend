@@ -62,6 +62,14 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
       css: false,
+      // `npm run test:coverage` writes coverage/lcov.info, which SonarQube Cloud
+      // reads to show coverage per file and enforce it on new code in PRs
+      coverage: {
+        provider: 'v8',
+        reporter: ['text-summary', 'lcov'],
+        include: ['src/**/*.{ts,tsx}'],
+        exclude: ['src/test/**', 'src/**/*.test.{ts,tsx}', 'src/main.tsx', 'src/**/*.d.ts'],
+      },
     },
   }
 })
