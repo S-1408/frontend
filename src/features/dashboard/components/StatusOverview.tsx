@@ -1,17 +1,27 @@
-import type { ApplicationStatusData } from "../../applications/types";
+import { useApplicationStats } from "../../applications/hooks/useApplicationStats";
+import type { ApplicationStatus } from "../../applications/types";
 import StatCard from "./StatCard";
 
-type StatusOverviewProps = {
-  data: ApplicationStatusData[];
-};
+const statuses: ApplicationStatus[] = ["applied", "interview", "offer", "rejected"];
 
-const StatusOverview = ({ data }: StatusOverviewProps) => {
+const StatusOverview = () => {
+  const { data: stats, isPending, isError } = useApplicationStats();
+
+  if (isPending) {
+    return <p className="mt-6 text-sm text-gray-500" role="status">Loading application stats...</p>;
+  }
+
+  if (isError) {
+    return <p className="mt-6 text-sm text-red-600" role="alert">Couldn't load application stats.</p>;
+  }
+
   return (
     <div>
       <h1 className="text-xl font-bold mt-2">Application Status</h1>
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {data.map((item) => (
-          <StatCard key={item.status} title={item.status} value={item.count} />
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <StatCard title="Total" value={stats.total} />
+        {statuses.map((status) => (
+          <StatCard key={status} title={status} value={stats.byStatus[status]} />
         ))}
       </div>
     </div>

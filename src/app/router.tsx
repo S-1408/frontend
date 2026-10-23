@@ -9,6 +9,8 @@ import PageLoader from "../shared/components/Loading/PageLoader";
 // first visit wait for main.js, THEN request Dashboard.js (an extra round trip)
 // to save ~1 kB.
 import Dashboard from "../features/dashboard/pages/Dashboard";
+import ProtectedRoute from "../features/auth/ProtectedRoute";
+import LoginPage from "../features/auth/pages/LoginPage";
 
 // Secondary pages are code-split: each becomes its own JS file, downloaded
 // only when its route is visited. The router's `lazy` (not React.lazy) loads the file
@@ -20,48 +22,47 @@ import Dashboard from "../features/dashboard/pages/Dashboard";
 // React Router decides what appears based on the URL.
 // Exported separately so tests can mount the real route tree in a memory router
 export const routes: RouteObject[] = [
-    {
-        path:'/',
-        element:<AppLayout/>,
-        errorElement:<RouterErrorPage/>,//catches 404s and layout crashes
-        children:[
+  {
+    path: "/login",
+    element: <LoginPage />,
+    errorElement: <RouterErrorPage />,
+  },
+  {
+    path: "/",
+    // Guard the entire app area so each child route shares the same session check.
+    element: <ProtectedRoute />,
+    errorElement: <RouterErrorPage />,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
           {
-            // Pathless route: a crashing page renders its error inside
-            // AppLayout's <Outlet>, so the header and sidebar keep working
-            errorElement:<RouterErrorPage/>,
-            // First visit only: shown in the layout's <Outlet> while a lazy
-            // page's file downloads (e.g. opening /applications directly). Without it the whole app is blank.
-            HydrateFallback:PageLoader,
-            children:[
+            // A page crash renders inside AppLayout so the header and sidebar remain available.
+            errorElement: <RouterErrorPage />,
+            HydrateFallback: PageLoader,
+            children: [
+              { index: true, element: <Dashboard /> },
               {
-                index:true,
-                element:<Dashboard/>
+                path: "applications",
+                lazy: async () => ({
+                  Component: (await import("../features/applications/pages/ApplicationPage")).default,
+                }),
               },
               {
-                path:'applications',
-                lazy:async()=>({
-                  Component:(await import("../features/applications/pages/ApplicationPage")).default
-                })
+                path: "*",
+                element: <NotFoundPage />,
               },
-              {
-                // Unknown URLs show 404 inside the layout instead of a blank page
-                path:'*',
-                element:<NotFoundPage/>
-              },
-            ]
+            ],
           },
-        ]
-    }
-]
+        ],
+      },
+    ],
+  },
+];
 
 // Wrapped so Sentry names performance transactions by route pattern
 export const router = Sentry.wrapCreateBrowserRouter(createBrowserRouter)(routes)
 
 
-// /
-// └── AppLayout
-//       ├── Header
-//       ├── Sidebar
-//       └── Outlet
-//             ↓
-//          Dashboard
+// /login -> LoginPage
+// /      -> ProtectedRoute -> AppLayout -> Dashboard / Applications / 404

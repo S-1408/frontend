@@ -2,9 +2,9 @@
 // Component props live next to their components, not here.
 
 export type ApplicationStatus = "applied" | "interview" | "offer" | "rejected";
-export type ApplicationStatusData = {
-  status: ApplicationStatus;
-  count: number;
+export type ApplicationStats = {
+  total: number;
+  byStatus: Record<ApplicationStatus, number>;
 };
 
 export type Application = {

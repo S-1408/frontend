@@ -11,6 +11,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 import AppCrashFallback from './shared/components/ErrorBoundary/AppCrashFallback.tsx'
 import { reportError } from './lib/monitoring/reportError.ts'
 import { createQueryClient } from './lib/queryClient/queryClient.ts'
+import { AuthProvider } from './features/auth/AuthProvider.tsx'
 
 const queryClient = createQueryClient()
 // React 19 hooks: every error caught by ANY boundary (ours or React Router's)
@@ -22,7 +23,10 @@ createRoot(document.getElementById('root')!, {
   <StrictMode>
     <ErrorBoundary FallbackComponent={AppCrashFallback}>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        {/* Auth state/cache actions must be available to the router and all app pages. */}
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
         {/* One app-wide toast outlet; call toast.success/error from anywhere */}
         <Toaster position="top-right" richColors closeButton />
       </QueryClientProvider>

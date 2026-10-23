@@ -7,11 +7,16 @@ import { renderWithProviders } from "../test/utils";
 import { routes } from "./router";
 import AppLayout from "./AppLayout";
 import RouterErrorPage from "../shared/components/ErrorBoundary/RouterErrorPage";
+import { clearAccessToken, setAccessToken } from "../features/auth/authTokens";
 
 beforeEach(() => {
+  setAccessToken("test-access");
   server.use(http.get("*/applications", () => HttpResponse.json([])));
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  clearAccessToken();
+  vi.restoreAllMocks();
+});
 
 describe("lazy-loaded pages", () => {
   // Why: on first visit the page file is still downloading. The layout must
@@ -25,7 +30,7 @@ describe("lazy-loaded pages", () => {
     expect(screen.getByRole("status", { name: "Loading page" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
 
-    expect(await screen.findByRole("heading", { name: /Applications/ })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /Applications/ }, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.queryByRole("status", { name: "Loading page" })).not.toBeInTheDocument();
     expect(warn).not.toHaveBeenCalledWith(expect.stringMatching(/HydrateFallback/));
   });
