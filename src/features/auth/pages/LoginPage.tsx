@@ -53,7 +53,7 @@ const LoginPage = () => {
   };
 
   return (
-    <main className="mx-auto mt-16 max-w-md p-6">
+    <main className="mx-auto mt-8 w-full max-w-md p-4 sm:mt-16 sm:p-6">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <h1 className="text-2xl font-bold">Sign in</h1>
         {initializationError && (

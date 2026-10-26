@@ -9,7 +9,7 @@ const Application = () => {
   return (
     <>
          <ApplicationHeader/>
-        <div className="flex items-center justify-around p-6 gap-5">
+        <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-6">
           <ApplicationSearch/>
           <StatusFilter/>
         </div>

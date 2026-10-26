@@ -55,9 +55,9 @@ const ApplicationList = () => {
 
   return (
     <>
-      <div className="mt-6 w-full p-6">
+      <div className="mt-2 w-full p-4 sm:mt-6 sm:p-6">
         <h2>All Applications</h2>
-        <section className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        <section className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white sm:mt-6">
           <div className="overflow-x-auto">
             <DataTable
               columns={columns}
