@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => {
     ],
     // 'hidden' generates maps for upload without referencing them from the JS
     build: {
-      sourcemap: 'hidden',
+      sourcemap: env.SENTRY_AUTH_TOKEN && !isAnalyze ? 'hidden' : false,
       rolldownOptions: {
         output: {
           // Core libraries go in their own file. They rarely change, so browsers
