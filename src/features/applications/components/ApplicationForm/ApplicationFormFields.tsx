@@ -17,10 +17,6 @@ const styles = {
 };
 
 const trim = (value: string) => value.trim();
-// Local date as YYYY-MM-DD, matching the native date input format
-const today = () => new Date().toLocaleDateString("en-CA");
-
-
 
 // Lives inside <Modal>, which renders children only while open. So the form
 // mounts fresh on every open and reads defaultValues again: editing a second
@@ -39,8 +35,6 @@ const ApplicationFormFields = ({
     defaultValues: {
       status: "applied",
       ...defaultValues,
-      // API dates may be full ISO strings; <input type="date"> needs YYYY-MM-DD
-      appliedAt: defaultValues?.appliedAt?.slice(0, 10),
     },
   });
 
@@ -109,27 +103,6 @@ const ApplicationFormFields = ({
           </select>
         </div>
 
-        <div className={styles.field}>
-          <label htmlFor={`${formId}-appliedAt`}>Applied Date</label>
-          <input
-            id={`${formId}-appliedAt`}
-            type="date"
-            max={today()}
-            className={styles.input}
-            aria-invalid={Boolean(errors.appliedAt)}
-            aria-describedby={errors.appliedAt ? `${formId}-appliedAt-error` : undefined}
-            {...register("appliedAt", {
-              required: "Applied date is required",
-              validate: (value) =>
-                value <= today() || "Applied date cannot be in the future",
-            })}
-          />
-          {errors.appliedAt && (
-            <p id={`${formId}-appliedAt-error`} className={styles.error}>
-              {errors.appliedAt.message}
-            </p>
-          )}
-        </div>
       </fieldset>
     </form>
   );

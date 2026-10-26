@@ -33,20 +33,11 @@ export async function getApplicationStats(signal?: AbortSignal): Promise<Applica
     return response.data;
 }
 
-export async function fetchApplication(id: string) {
-    const response = await apiClient.get(
-      API_ENDPOINTS.applications.byId(id),
-      authenticatedRequest,
+export async function deleteApplication(id: string): Promise<void> {
+    await apiClient.delete(
+        API_ENDPOINTS.applications.byId(id),
+        authenticatedRequest,
     );
-    return response.data;
-}
-
-export async function deleteApplication(id: string) {
-    const response = await apiClient.delete<Application>(
-      API_ENDPOINTS.applications.byId(id),
-      authenticatedRequest,
-    );
-    return response.data;
 }
 
 export async function createApplication(payload: CreateApplicationPayload) {

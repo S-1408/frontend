@@ -47,7 +47,6 @@ const EditApplicationModal = ({ application, onClose }: EditApplicationModalProp
               company: application.company,
               role: application.role,
               status: application.status,
-              appliedAt: application.appliedAt,
             }
           : undefined
       }

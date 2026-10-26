@@ -15,7 +15,7 @@ export type Application = {
   appliedAt: string;
 };
 
-export type CreateApplicationPayload = Omit<Application, "id">;
+export type CreateApplicationPayload = Pick<Application, "company" | "role" | "status">;
 
 // What the form edits: everything except the server-owned id
 export type ApplicationFormValues = CreateApplicationPayload;

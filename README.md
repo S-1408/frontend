@@ -9,7 +9,7 @@ access token does not need to be persisted in browser storage.
 ### Login and session restoration
 
 - The `/login` page sends credentials to `/auth/login`. On success, the backend
-  returns `{ "accessToken": "..." }` and sets the refresh token in an `HttpOnly`
+  returns an access token and user and sets the refresh token in an `HttpOnly`
   cookie. The cookie is not readable by JavaScript, which helps protect it from
   token theft through client-side script injection.
 - The access token is held only in memory. This avoids persisting a bearer token
@@ -61,8 +61,8 @@ implement `/auth/logout` to invalidate the refresh session and clear the cookie.
 
 ## Dashboard statistics API
 
-The dashboard loads its application status cards from the protected `GET /stats`
-endpoint. The response includes the total and count for each application status,
+The dashboard loads its application status cards from the protected
+`GET /dashboard/stats` endpoint. The response includes the total and count for each application status,
 for example:
 
 ```json
@@ -80,6 +80,12 @@ for example:
 The stats request includes the access token and participates in the shared
 refresh/retry flow. Successful application create, update, and delete actions
 invalidate the application query cache, which also refreshes dashboard stats.
+
+## Local API configuration
+
+The backend listens on port `4000` by default and mounts its routes under
+`/api`. Set `VITE_API_BASE_URL=http://localhost:4000/api` in the frontend
+environment (or use the provided `.env.example`) to connect to it.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
