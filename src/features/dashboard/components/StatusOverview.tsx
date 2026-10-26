@@ -18,7 +18,7 @@ const StatusOverview = () => {
   return (
     <div>
       <h1 className="text-xl font-bold mt-2">Application Status</h1>
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 lg:grid-cols-5">
         <StatCard title="Total" value={stats.total} />
         {statuses.map((status) => (
           <StatCard key={status} title={status} value={stats.byStatus[status]} />

@@ -24,7 +24,7 @@ function DataTable<TData>({ columns, data,emptyMessage = "No data available" }: 
         {table.getHeaderGroups().map((headerGroup) => (
           <tr key={headerGroup.id} className="border-b border-gray-100 bg-gray-50/70">
             {headerGroup.headers.map((header) => (
-              <th key={header.id} className="px-6 py-3.5 text-left text-sm font-medium uppercase tracking-wide text-gray-500">
+              <th key={header.id} className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500 sm:px-6 sm:py-3.5 sm:text-sm">
                 {flexRender(
                   header.column.columnDef.header,
                   header.getContext(),
@@ -44,7 +44,7 @@ function DataTable<TData>({ columns, data,emptyMessage = "No data available" }: 
         :(table.getRowModel().rows.map((row) => (
           <tr key={row.id} className="group transition-colors hover:bg-gray-50/70">
             {row.getVisibleCells().map((cell) => (
-              <td key={cell.id} className="px-6 py-4">
+              <td key={cell.id} className="px-3 py-3 sm:px-6 sm:py-4">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </td>
             ))}

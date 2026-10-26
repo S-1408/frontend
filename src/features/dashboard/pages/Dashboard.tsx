@@ -4,9 +4,9 @@ import SectionErrorBoundary from "../../../shared/components/ErrorBoundary/Secti
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-full bg-gray-50 p-4 sm:p-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500">
           Track and manage your job applications.
         </p>

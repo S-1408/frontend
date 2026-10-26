@@ -33,15 +33,15 @@ const ApplicationHeader = () => {
   };
   return (
     <>
-      <div className="flex items-center justify-between p-6 border-b border-gray-100">
-        <div>
-          <h2 className="text-xl font-medium text-gray-700">Applications </h2>
+      <div className="flex flex-col items-stretch gap-4 border-b border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="min-w-0">
+          <h2 className="text-xl font-medium text-gray-700">Applications</h2>
           <p className="text-sm text-gray-600">
-            Manage and track all your job applications.{" "}
+            Manage and track all your job applications.
           </p>
         </div>
         <button
-          className="rounded-xl bg-indigo-300 px-3 py-2 transition hover:bg-indigo-500"
+          className="w-full rounded-xl bg-indigo-300 px-4 py-2 transition hover:bg-indigo-500 sm:w-auto"
           onClick={() => setIsOpen(true)}
         >
           Add Application

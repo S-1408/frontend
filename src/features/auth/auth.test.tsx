@@ -219,7 +219,7 @@ describe("current user API", () => {
       }),
     );
 
-    renderWithProviders(<Header />);
+    renderWithProviders(<Header isMobileNavOpen={false} onToggleMobileNav={() => undefined} />);
 
     expect(await screen.findByText(/Welcome back, Jordan Lee/)).toBeInTheDocument();
     expect(screen.getByText("jordan@example.com")).toBeInTheDocument();

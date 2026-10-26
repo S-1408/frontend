@@ -15,7 +15,11 @@ const StatusFilter = () => {
   return (
     <label>
       <span className="sr-only">Filter by status</span>
-      <select value={status} onChange={(e) => handleChange(e.target.value)} className="…">
+      <select
+        value={status}
+        onChange={(e) => handleChange(e.target.value)}
+        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 transition hover:border-gray-900 focus:border-gray-900 sm:w-auto"
+      >
         <option value="">All status</option>
         {APPLICATION_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
       </select>
