@@ -1,11 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ApplicationFormFields from "./ApplicationFormFields";
 import type { ApplicationFormValues } from "../../types";
 
 const FORM_ID = "test-form";
-const TODAY = "2026-10-05";
 
 // In the app the submit button lives in the modal footer and points at the
 // form via the `form` attribute, so the test mirrors that wiring
@@ -26,7 +25,6 @@ const fields = () => ({
   company: screen.getByLabelText(/company/i),
   role: screen.getByLabelText(/role/i),
   status: screen.getByLabelText(/status/i),
-  appliedAt: screen.getByLabelText(/applied date/i),
 });
 
 async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
@@ -34,21 +32,12 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(f.company, "Google");
   await user.type(f.role, "Frontend Developer");
   await user.selectOptions(f.status, "interview");
-  await user.type(f.appliedAt, "2026-09-01");
 }
 
 const submit = (user: ReturnType<typeof userEvent.setup>) =>
   user.click(screen.getByRole("button", { name: "Add" }));
 
 describe("ApplicationFormFields", () => {
-  // Freeze only Date (not timers) so "today" is deterministic and
-  // user-event's internal timers still run normally
-  beforeEach(() => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date(`${TODAY}T12:00:00`));
-  });
-  afterEach(() => vi.useRealTimers());
-
   describe("rendering", () => {
     // Why: every input must be reachable by its label. If this fails, screen
     // readers can't announce the field and clicking the label won't focus it.
@@ -58,7 +47,7 @@ describe("ApplicationFormFields", () => {
       expect(f.company).toBeInTheDocument();
       expect(f.role).toBeInTheDocument();
       expect(f.status).toBeInTheDocument();
-      expect(f.appliedAt).toHaveAttribute("type", "date");
+      expect(screen.queryByLabelText(/applied date/i)).not.toBeInTheDocument();
     });
 
     // Why: option values are sent to the API, so they must exactly match
@@ -69,13 +58,6 @@ describe("ApplicationFormFields", () => {
       expect(
         screen.getAllByRole("option").map((o) => o.getAttribute("value")),
       ).toEqual(["applied", "interview", "offer", "rejected"]);
-    });
-
-    // Why: `max` stops the native date picker offering future dates, so most
-    // users never even see the validation error.
-    it("prevents picking a future date in the date picker", () => {
-      setup();
-      expect(fields().appliedAt).toHaveAttribute("max", TODAY);
     });
 
     // Why: the edit modal reuses this component; if defaultValues are ignored,
@@ -90,12 +72,6 @@ describe("ApplicationFormFields", () => {
       expect(f.status).toHaveValue("offer");
     });
 
-    // Why: the API returns full ISO timestamps, but <input type="date"> only
-    // accepts YYYY-MM-DD. Without the conversion, editing shows an empty date.
-    it("converts an ISO appliedAt from the API into the date input format", () => {
-      setup({ defaultValues: { appliedAt: "2026-09-20T00:00:00.000Z" } });
-      expect(fields().appliedAt).toHaveValue("2026-09-20");
-    });
   });
 
   describe("submitting", () => {
@@ -111,7 +87,6 @@ describe("ApplicationFormFields", () => {
         company: "Google",
         role: "Frontend Developer",
         status: "interview",
-        appliedAt: "2026-09-01",
       });
     });
 
@@ -127,17 +102,6 @@ describe("ApplicationFormFields", () => {
       expect(onSubmit.mock.calls[0][0]).toMatchObject({ company: "Google" });
     });
 
-    // Why: off-by-one bugs live at boundaries. Applying today is the most common
-    // case, and a `<` instead of `<=` would wrongly reject it.
-    it("accepts today's date (boundary)", async () => {
-      const { user, onSubmit } = setup();
-      await fillValidForm(user);
-      await user.clear(fields().appliedAt);
-      await user.type(fields().appliedAt, TODAY);
-      await submit(user);
-
-      expect(onSubmit).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe("validation", () => {
@@ -149,7 +113,6 @@ describe("ApplicationFormFields", () => {
 
       expect(await screen.findByText("Company is required")).toBeInTheDocument();
       expect(screen.getByText("Role is required")).toBeInTheDocument();
-      expect(screen.getByText("Applied date is required")).toBeInTheDocument();
       expect(onSubmit).not.toHaveBeenCalled();
     });
 
@@ -186,21 +149,6 @@ describe("ApplicationFormFields", () => {
       await user.type(fields().company, "{Backspace}");
       await submit(user);
       expect(onSubmit).toHaveBeenCalledTimes(1);
-    });
-
-    // Why: you can't have applied in the future. `max` only restricts the picker;
-    // typed or pasted dates must still be caught by validation.
-    it("rejects a future applied date", async () => {
-      const { user, onSubmit } = setup();
-      await fillValidForm(user);
-      await user.clear(fields().appliedAt);
-      await user.type(fields().appliedAt, "2026-10-06");
-      await submit(user);
-
-      expect(
-        await screen.findByText("Applied date cannot be in the future"),
-      ).toBeInTheDocument();
-      expect(onSubmit).not.toHaveBeenCalled();
     });
 
     // Why: a stale error after the user fixed the input is confusing and makes the

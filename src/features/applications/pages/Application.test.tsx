@@ -60,7 +60,6 @@ async function fillAndSubmit(user: User, dialog: HTMLElement) {
   const d = within(dialog);
   await user.type(d.getByLabelText(/company/i), "Google");
   await user.type(d.getByLabelText(/role/i), "Frontend Developer");
-  await user.type(d.getByLabelText(/applied date/i), "2026-09-01");
   await user.click(d.getByRole("button", { name: "Add" }));
 }
 
@@ -80,7 +79,7 @@ describe("Create application flow", () => {
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(postedBodies).toEqual([
-      { company: "Google", role: "Frontend Developer", status: "applied", appliedAt: "2026-09-01" },
+      { company: "Google", role: "Frontend Developer", status: "applied" },
     ]);
     // Proves the cache invalidation refetched the list
     expect(await screen.findByText("Google")).toBeInTheDocument();
@@ -307,7 +306,7 @@ describe("Edit application", () => {
     expect(d.getByLabelText(/company/i)).toHaveValue("Amazon");
     expect(d.getByLabelText(/role/i)).toHaveValue("SDE II");
     expect(d.getByLabelText(/status/i)).toHaveValue("applied");
-    expect(d.getByLabelText(/applied date/i)).toHaveValue("2026-09-20");
+    expect(d.queryByLabelText(/applied date/i)).not.toBeInTheDocument();
   });
 
   // Why: the happy path. The new role only shows if the list was invalidated.

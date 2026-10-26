@@ -2,9 +2,9 @@
 // Component props live next to their components, not here.
 
 export type ApplicationStatus = "applied" | "interview" | "offer" | "rejected";
-export type ApplicationStatusData = {
-  status: ApplicationStatus;
-  count: number;
+export type ApplicationStats = {
+  total: number;
+  byStatus: Record<ApplicationStatus, number>;
 };
 
 export type Application = {
@@ -15,7 +15,7 @@ export type Application = {
   appliedAt: string;
 };
 
-export type CreateApplicationPayload = Omit<Application, "id">;
+export type CreateApplicationPayload = Pick<Application, "company" | "role" | "status">;
 
 // What the form edits: everything except the server-owned id
 export type ApplicationFormValues = CreateApplicationPayload;

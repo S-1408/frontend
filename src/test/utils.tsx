@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { Toaster } from "sonner";
 import { MemoryRouter } from "react-router-dom";
 import { createQueryClient } from "../lib/queryClient/queryClient";
+import { AuthProvider } from "../features/auth/AuthProvider";
 
 // Fresh client per test so cache never leaks between tests; no retries so
 // error states show up immediately instead of after 3 attempts.
@@ -21,7 +22,9 @@ export function renderWithProviders(ui: ReactElement, { route }: { route?: strin
     queryClient,
     ...render(
       <QueryClientProvider client={queryClient}>
-        {route ? <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter> : ui}
+        <AuthProvider>
+          {route ? <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter> : ui}
+        </AuthProvider>
         <Toaster />
       </QueryClientProvider>,
     ),

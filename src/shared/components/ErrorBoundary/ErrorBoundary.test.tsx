@@ -8,6 +8,8 @@ import AppLayout from "../../../app/AppLayout";
 import AppCrashFallback from "./AppCrashFallback";
 import RouterErrorPage from "./RouterErrorPage";
 import SectionErrorBoundary from "./SectionErrorBoundary";
+import { clearAccessToken, setAccessToken } from "../../../features/auth/authTokens";
+import { renderWithProviders } from "../../../test/utils";
 
 // A component that throws while rendering, like a real bug would
 // (e.g. calling .charAt on a null company name)
@@ -23,6 +25,7 @@ beforeEach(() => {
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 afterEach(() => {
+  clearAccessToken();
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
 });
@@ -80,6 +83,7 @@ describe("Route error handling", () => {
   // Why: a crash inside a page should render inside the layout's <Outlet>, so
   // the header and sidebar remain usable and the user can navigate away.
   it("renders a page crash inside the layout, keeping navigation usable", () => {
+    setAccessToken("test-access");
     const router = createMemoryRouter(
       [
         {
@@ -91,7 +95,7 @@ describe("Route error handling", () => {
       ],
       { initialEntries: ["/"] },
     );
-    render(<RouterProvider router={router} />);
+    renderWithProviders(<RouterProvider router={router} />);
 
     expect(screen.getByRole("alert")).toHaveTextContent("Something went wrong");
     expect(screen.getByRole("link", { name: "Applications" })).toBeInTheDocument();
@@ -101,8 +105,9 @@ describe("Route error handling", () => {
   // Why: uses the REAL route config, so it fails if someone removes the
   // catch-all route. Sidebar links like /settings don't exist yet.
   it("shows a 404 page inside the layout for unknown URLs", () => {
+    setAccessToken("test-access");
     const router = createMemoryRouter(routes, { initialEntries: ["/settings"] });
-    render(<RouterProvider router={router} />);
+    renderWithProviders(<RouterProvider router={router} />);
 
     expect(screen.getByRole("heading", { name: "Page not found" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Applications" })).toBeInTheDocument();
